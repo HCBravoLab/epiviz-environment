@@ -1,0 +1,24 @@
+{
+  "name": "epiviz-environment",
+  "authors": [
+    "Jayaram Kancherla <jayaram.kancherla@gmail.com>"
+  ],
+  "description": "Chart environment element for epiviz",
+  "main": "",
+  "keywords": [
+    "epiviz",
+    "chart"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer#^1.6.1"
+  }
+}
