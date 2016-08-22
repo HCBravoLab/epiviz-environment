@@ -1,0 +1,144 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<script src="src/js/lib/jquery/jquery-1.8.2.js"></script>
+<script src="src/js/lib/closure/goog/base.js"></script>
+
+<!-- Epiviz Libraries -->
+<script src="src/js/epiviz/deferred/deferred.js"></script>
+<script src="src/js/epiviz/deferred/promise.js"></script>
+<script src="src/js/epiviz/utils/utils.js"></script>
+<script src="src/js/epiviz/caja/caja-standalone.js"></script>
+<script src="src/js/epiviz/utils/expression-parser.js"></script>
+<script src="src/js/epiviz/utils/iterable.js"></script>
+<script src="src/js/epiviz/utils/iterable-array.js"></script>
+
+<script src="src/js/epiviz/datatypes/seq-info.js"></script>
+<script src="src/js/epiviz/datatypes/genomic-array.js"></script>
+<script src="src/js/epiviz/datatypes/genomic-range-array.js"></script>
+<script src="src/js/epiviz/datatypes/feature-value-array.js"></script>
+<script src="src/js/epiviz/datatypes/partial-summarized-experiment.js"></script>
+<script src="src/js/epiviz/datatypes/measurement-genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/measurement-genomic-data-wrapper.js"></script>
+<script src="src/js/epiviz/datatypes/measurement-genomic-data-array-wrapper.js"></script>
+<script src="src/js/epiviz/datatypes/genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/row-item-impl.js"></script>
+<script src="src/js/epiviz/datatypes/map-genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/item-filtered-genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/measurement-ordered-genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/measurement-aggregated-genomic-data.js"></script>
+<script src="src/js/epiviz/datatypes/genomic-range.js"></script>
+
+<dom-module id="epiviz-environment">
+
+<template>	
+	<style>
+	:host{
+		display: inline-block;
+	}
+	</style>
+	<content id="chartEnv"></content>
+</template>
+
+<script>
+Polymer({
+	is:'epiviz-environment',
+	properties:{
+		measurement:{
+			type: Object,
+			notiffy: true,
+			reflectToAttribute:true
+		},
+		dataTemp:{
+			type: Object,
+			value: {},
+			notify: true
+		}
+	},
+
+	// Listeners for interaction between 2 graphs
+	listeners:{
+		'hover': 'onHover',
+		'unHover': 'onUnhover'
+	},
+
+	onHover: function(e){ 
+	// console.log("in onHover of chart-env");
+	this.fire('hoverAllCharts',
+		{data: e.detail} 
+	);
+},
+
+ready: function(){
+	console.log("in ready function");
+	
+	this.scopeSubtree(this, true);
+
+	var self = this;
+
+	var measKeys = Object.keys(this.measurement);
+	console.log(measKeys);
+
+	measKeys.forEach(function(mk){
+			var currMea = self.measurement[mk]; 
+
+			var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + currMea.dataprovider + '"]');
+
+			if (dataManagerElem != null){
+				var dataManager = dataManagerElem.epivizDataManager;
+				console.log(dataManager);
+				var tempMSet = new epiviz.measurements.MeasurementSet();
+				var tempMea = new epiviz.measurements.Measurement(
+					currMea.id,
+					currMea.name,
+					currMea.type,
+					currMea.datasourceId,
+					currMea.datasourceGroup,
+					'umd',
+					null,
+					null,
+					null,
+					currMea.minValue,
+					currMea.maxValue,
+					currMea.metadata
+					);
+
+				tempMSet.add(tempMea);
+
+				var tM = {};
+				tM[mk] = tempMSet;
+				var range = new epiviz.datatypes.GenomicRange("chr11",80000000,3000000);
+				var webProvider = dataManager._dataProviderFactory._providers[currMea.dataprovider];
+				console.log(webProvider);
+
+				var dataRequest = currMea.type == 'range'? epiviz.data.Request.getRows(tempMea, range) : epiviz.data.Request.getValues(tempMea, range);
+
+				console.log(dataRequest);
+
+				webProvider.getData(dataRequest, function(data) {
+					console.log(data);
+					self[mk] = data._data.values;
+					self._dataCreated();
+				});
+
+			}
+
+		});
+},
+
+// Pre-processing data
+// and bind them to dataX and dataY of chart  
+_dataCreated: function() {
+	var self = this;
+	var numChildren = self.getEffectiveChildren().length;
+	for(var index = 0; index < numChildren; index++){
+		var currentChild = self.getContentChildren('#chartEnv')[index];
+		var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
+		var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
+		currentChild.dataX = self[tdx];
+		currentChild.dataY = self[tdy];
+	}												 
+}
+
+});
+</script>
+</dom-module>
