@@ -5,7 +5,7 @@
 
 <dom-module id="epiviz-environment">
 
-<template>	
+    <template>	
 	<style>
 	:host{
 		display: inline-block;
@@ -14,106 +14,260 @@
 	<content id="chartEnv"></content>
 </template>
 
-<script>
-Polymer({
-	is:'epiviz-environment',
-	properties:{
-		measurement:{
-			type: Object,
-			notiffy: true,
-			reflectToAttribute:true
-		},
-		dataTemp:{
-			type: Object,
-			value: {},
-			notify: true
-		}
-	},
+    <script>
+        Polymer({
+            is: 'epiviz-environment',
+            properties: {
+                measurements: {
+                    type: Object,
+                    notify: true,
+                    reflectToAttribute: true
+                },
+                // dataTemp: {
+                //     type: Object,
+                //     value: {},
+                //     notify: true
+                // },
+                range: {
+                    type: Object,
+                    notify: true,
+                    value: function() {
+                        return new epiviz.datatypes.GenomicRange("chr11", 82000000, 9000000);
+                    }
+                }
+            },
 
-	// Listeners for interaction between 2 graphs
-	listeners:{
-		'hover': 'onHover',
-		'unHover': 'onUnhover'
-	},
+            // Listeners for interaction between 2 graphs
+            listeners: {
+                'hover': 'onHover',
+                'unHover': 'onUnhover',
+                'dimChanged': 'onDimChanged'
+            },
 
-	onHover: function(e){ 
-	// console.log("in onHover of chart-env");
-	this.fire('hoverAllCharts',
-		{data: e.detail} 
-	);
-},
+            onHover: function(e) {
+                // console.log("in onHover of chart-env");
+                this.fire('hoverAllCharts', {
+                    data: e.detail.data
+                });
+            },
 
-ready: function(){
-	console.log("in ready function");
-	
-	this.scopeSubtree(this, true);
+            onUnhover: function(e) {
+                // console.log("in onHover of chart-env");
+                this.fire('unHoverAllCharts', {
+                    data: null
+                });
+            },
 
-	var self = this;
+            onDimChanged: function(e) {
+                var chartId = e.detail.id;
 
-	var measKeys = Object.keys(this.measurement);
-	console.log(measKeys);
+                if (chartId != null) {
+                    this._updateChart(chartId);
+                }
+            },
 
-	measKeys.forEach(function(mk){
-			var currMea = self.measurement[mk]; 
+            _generateChartId: function() {
+                var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                var result = '';
+                var size = 7;
 
-			var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + currMea.dataprovider + '"]');
+                for (var i = 0; i < size; ++i) {
+                    result += chars[Math.round(Math.random() * (chars.length - 1))];
+                }
+                return 'epiviz-' + result;
+            },
 
-			if (dataManagerElem != null){
-				var dataManager = dataManagerElem.epivizDataManager;
-				console.log(dataManager);
-				var tempMSet = new epiviz.measurements.MeasurementSet();
-				var tempMea = new epiviz.measurements.Measurement(
-					currMea.id,
-					currMea.name,
-					currMea.type,
-					currMea.datasourceId,
-					currMea.datasourceGroup,
-					'umd',
-					null,
-					null,
-					null,
-					currMea.minValue,
-					currMea.maxValue,
-					currMea.metadata
-					);
+            _updateChart: function(cId) {
 
-				tempMSet.add(tempMea);
+                var self = this;
 
-				var tM = {};
-				tM[mk] = tempMSet;
-				var range = new epiviz.datatypes.GenomicRange("chr11",80000000,3000000);
-				var webProvider = dataManager._dataProviderFactory._providers[currMea.dataprovider];
-				console.log(webProvider);
+                var currentChild = Polymer.dom(self).querySelector('[plot-id$="' + cId + '"]');
 
-				var dataRequest = currMea.type == 'range'? epiviz.data.Request.getRows(tempMea, range) : epiviz.data.Request.getValues(tempMea, range);
+                var dims = currentChild.dimS || currentChild.getAttribute("dim-s");
 
-				console.log(dataRequest);
+                if (typeof(dims) == "string") {
+                    dims = JSON.parse(dims);
+                }
 
-				webProvider.getData(dataRequest, function(data) {
-					console.log(data);
-					self[mk] = data._data.values;
-					self._dataCreated();
-				});
+                var mSet = new epiviz.measurements.MeasurementSet();
+                var tMeasurements = [];
 
-			}
+                for (var idim = 0; idim < dims.length; idim++) {
 
-		});
-},
+                    var mtdx = self.measurements[dims[idim]];
 
-// Pre-processing data
-// and bind them to dataX and dataY of chart  
-_dataCreated: function() {
-	var self = this;
-	var numChildren = self.getEffectiveChildren().length;
-	for(var index = 0; index < numChildren; index++){
-		var currentChild = self.getContentChildren('#chartEnv')[index];
-		var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
-		var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
-		currentChild.dataX = self[tdx];
-		currentChild.dataY = self[tdy];
-	}												 
-}
+                    mSet.add(new epiviz.measurements.Measurement(
+                        mtdx.id,
+                        mtdx.name,
+                        mtdx.type,
+                        mtdx.datasourceId,
+                        mtdx.datasourceGroup,
+                        mtdx.dataprovider,
+                        mtdx.formula,
+                        mtdx.defaultChartType,
+                        mtdx.annotation,
+                        mtdx.minValue,
+                        mtdx.maxValue,
+                        mtdx.metadata
+                    ));
 
-});
-</script>
+                    tMeasurements.push(mtdx);
+                }
+
+                currentChild.measurements = tMeasurements;
+                currentChild.range = self.range;
+
+                var chartMeasMap = {};
+                chartMeasMap[cId] = mSet;
+
+                var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
+
+                if (dataManagerElem != null) {
+                    var dataManager = dataManagerElem.epivizDataManager;
+
+                    dataManager.getData(self.range, chartMeasMap, function(id, data) {
+                        //currentChild.data = data;
+                        var dataChartElem = Polymer.dom(self).querySelector('[plot-id$="' + id + '"]');
+
+                        dataChartElem.data = data;
+                    });
+                }
+
+            },
+
+            ready: function() {
+                console.log("in ready function");
+
+                this.scopeSubtree(this, true);
+
+                var self = this;
+
+                // var measKeys = Object.keys(this.measurements);
+
+                var numChildren = self.getEffectiveChildren().length;
+                for (var index = 0; index < numChildren; index++) {
+                    var currentChild = self.getContentChildren('#chartEnv')[index];
+                    // var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
+                    // var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
+
+                    // var mtdx = self.measurements[tdx] || null;
+                    // var mtdy = self.measurements[tdy] || null;
+
+                    var dims = currentChild.dims || currentChild.getAttribute("dim-s");
+
+                    if (typeof(dims) == "string") {
+                        dims = JSON.parse(dims);
+                    }
+
+                    var id = self._generateChartId();
+                    var mSet = new epiviz.measurements.MeasurementSet();
+                    var tMeasurements = [];
+
+                    for (var idim = 0; idim < dims.length; idim++) {
+
+                        var mtdx = self.measurements[dims[idim]];
+
+                        mSet.add(new epiviz.measurements.Measurement(
+                            mtdx.id,
+                            mtdx.name,
+                            mtdx.type,
+                            mtdx.datasourceId,
+                            mtdx.datasourceGroup,
+                            mtdx.dataprovider,
+                            mtdx.formula,
+                            mtdx.defaultChartType,
+                            mtdx.annotation,
+                            mtdx.minValue,
+                            mtdx.maxValue,
+                            mtdx.metadata
+                        ));
+
+                        tMeasurements.push(mtdx);
+                    }
+
+                    currentChild.plotId = id;
+                    currentChild.measurements = tMeasurements;
+                    currentChild.range = self.range;
+
+                    var chartMeasMap = {};
+                    chartMeasMap[id] = mSet;
+
+                    var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
+
+                    if (dataManagerElem != null) {
+                        var dataManager = dataManagerElem.epivizDataManager;
+
+                        dataManager.getData(self.range, chartMeasMap, function(id, data) {
+                            //currentChild.data = data;
+                            var dataChartElem = Polymer.dom(self).querySelector('[plot-id$="' + id + '"]');
+
+                            dataChartElem.data = data;
+                        });
+                    }
+
+                }
+
+                // measKeys.forEach(function(mk) {
+                //     var currMea = self.measurement[mk];
+
+                //     var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + currMea.dataprovider + '"]');
+
+                //     if (dataManagerElem != null) {
+                //         var dataManager = dataManagerElem.epivizDataManager;
+                //         console.log(dataManager);
+                //         var tempMSet = new epiviz.measurements.MeasurementSet();
+                //         var tempMea = new epiviz.measurements.Measurement(
+                //             currMea.id,
+                //             currMea.name,
+                //             currMea.type,
+                //             currMea.datasourceId,
+                //             currMea.datasourceGroup,
+                //             'umd',
+                //             null,
+                //             null,
+                //             null,
+                //             currMea.minValue,
+                //             currMea.maxValue,
+                //             currMea.metadata
+                //         );
+
+                //         tempMSet.add(tempMea);
+
+                //         var tM = {};
+                //         tM[mk] = tempMSet;
+                //         var range = new epiviz.datatypes.GenomicRange("chr11", 80000000, 3000000);
+                //         var webProvider = dataManager._dataProviderFactory._providers[currMea.dataprovider];
+                //         console.log(webProvider);
+
+                //         var dataRequest = currMea.type == 'range' ? epiviz.data.Request.getRows(tempMea, range) : epiviz.data.Request.getValues(tempMea, range);
+
+                //         console.log(dataRequest);
+
+                //         webProvider.getData(dataRequest, function(data) {
+                //             console.log(data);
+                //             self[mk] = data._data.values;
+                //             self._dataCreated();
+                //         });
+
+                //     }
+
+                // });
+            }
+
+            // Pre-processing data
+            // and bind them to dataX and dataY of chart  
+            // _dataCreated: function() {
+            //     var self = this;
+            //     var numChildren = self.getEffectiveChildren().length;
+            //     for (var index = 0; index < numChildren; index++) {
+            //         var currentChild = self.getContentChildren('#chartEnv')[index];
+            //         var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
+            //         var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
+            //         currentChild.dataX = self[tdx];
+            //         currentChild.dataY = self[tdy];
+            //     }
+            // }
+
+        });
+    </script>
 </dom-module>
