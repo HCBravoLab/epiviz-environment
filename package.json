@@ -1,0 +1,32 @@
+{
+  "name": "epiviz-environment",
+  "version": "1.0.0",
+  "description": "Environmenta app helper component for epiviz",
+  "main": "demo/",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "postinstall": "bower cache clean && bower install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HCBravoLab/epiviz-environment.git"
+  },
+  "keywords": [
+    "epiviz",
+    "genomics",
+    "environment",
+    "charts",
+    "visualization"
+  ],
+  "author": "Jayaram Kancherla <jkanche@umiacs.umd.edu>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HCBravoLab/epiviz-environment/issues"
+  },
+  "homepage": "https://github.com/HCBravoLab/epiviz-environment#readme",
+  "dependencies": {
+    "bower": "latest"
+  }
+}
