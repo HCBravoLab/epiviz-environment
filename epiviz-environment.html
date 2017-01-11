@@ -1,7 +1,7 @@
-<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="../polymer/polymer.html">
 
-<link rel="import" href="bower_components/epiviz-imports/epiviz-common-js.html">
-<link rel="import" href="bower_components/epiviz-imports/epiviz-environment-import.html">
+<link rel="import" href="../epiviz-imports/epiviz-common-js.html">
+<link rel="import" href="../epiviz-imports/epiviz-environment-import.html">
 
 <dom-module id="epiviz-environment">
 
@@ -133,6 +133,10 @@
                     });
                 }
 
+            },
+
+            attached: function() {
+                console.log("something is attached");
             },
 
             ready: function() {
