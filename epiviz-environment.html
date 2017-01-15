@@ -11,7 +11,7 @@
 		display: inline-block;
 	}
 	</style>
-	<content id="chartEnv"></content>
+    <content id="chartEnv" select=".charts"></content>
 </template>
 
     <script>
@@ -49,6 +49,19 @@
                 this.fire('hoverAllCharts', {
                     data: e.detail.data
                 });
+
+                // var self = this;
+
+                // var numChildren = self.getEffectiveChildren().length;
+                // for (var index = 0; index < numChildren; index++) {
+                //     var currentChild = self.getEffectiveChildren()[index];
+                //     self.fire('hoverAllCharts', {
+                //          data: e.detail.data
+                //     }, {
+                //         bubbles: false,
+                //         node: currentChild
+                //     });
+                // }
             },
 
             onUnhover: function(e) {
@@ -56,6 +69,19 @@
                 this.fire('unHoverAllCharts', {
                     data: null
                 });
+
+                // var self = this;
+
+                // var numChildren = self.getEffectiveChildren().length;
+                // for (var index = 0; index < numChildren; index++) {
+                //     var currentChild = self.getEffectiveChildren()[index];
+                //     self.fire('unHoverAllCharts', {
+                //          data: null
+                //     }, {
+                //         bubbles: false,
+                //         node: currentChild
+                //     });
+                // }
             },
 
             onDimChanged: function(e) {
@@ -136,21 +162,15 @@
             },
 
             attached: function() {
-                console.log("something is attached");
-            },
-
-            ready: function() {
-                console.log("in ready function");
-
-                this.scopeSubtree(this, true);
 
                 var self = this;
+                // console.log("something is attached");
 
-                // var measKeys = Object.keys(this.measurements);
+                                // var measKeys = Object.keys(this.measurements);
 
                 var numChildren = self.getEffectiveChildren().length;
                 for (var index = 0; index < numChildren; index++) {
-                    var currentChild = self.getContentChildren('#chartEnv')[index];
+                    var currentChild = self.getEffectiveChildren()[index];
                     // var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
                     // var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
 
@@ -256,6 +276,24 @@
                 //     }
 
                 // });
+            },
+
+            ready: function() {
+                // console.log("in ready function");
+                this.scopeSubtree(this, true);
+                var self = this;
+
+                self._observer =
+                    Polymer.dom(self.$.chartEnv).observeNodes(function(info) {
+                        // self.$.eenv.render();
+                        // console.log(info.addedNodes);
+
+                        info.addedNodes.forEach(function(node) {
+                            self._updateChart(node.plotId);
+                        });
+
+                        // console.log(info.removedNodes);
+                });
             }
 
             // Pre-processing data
