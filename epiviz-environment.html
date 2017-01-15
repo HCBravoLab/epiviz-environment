@@ -149,7 +149,7 @@
                 var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
 
                 if (dataManagerElem != null) {
-                    var dataManager = dataManagerElem.epivizDataManager;
+                    var dataManager = dataManagerElem.dataManager;
 
                     dataManager.getData(self.range, chartMeasMap, function(id, data) {
                         //currentChild.data = data;
@@ -219,7 +219,7 @@
                     var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
 
                     if (dataManagerElem != null) {
-                        var dataManager = dataManagerElem.epivizDataManager;
+                        var dataManager = dataManagerElem.dataManager;
 
                         dataManager.getData(self.range, chartMeasMap, function(id, data) {
                             //currentChild.data = data;
@@ -237,7 +237,7 @@
                 //     var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + currMea.dataprovider + '"]');
 
                 //     if (dataManagerElem != null) {
-                //         var dataManager = dataManagerElem.epivizDataManager;
+                //         var dataManager = dataManagerElem.dataManager;
                 //         console.log(dataManager);
                 //         var tempMSet = new epiviz.measurements.MeasurementSet();
                 //         var tempMea = new epiviz.measurements.Measurement(
