@@ -34,6 +34,16 @@
                     value: function() {
                         return new epiviz.datatypes.GenomicRange("chr11", 82000000, 9000000);
                     }
+                },
+
+                transformData: {
+                    type: Boolean,
+                    notify: true
+                },
+
+                transformDataFunc: {
+                    type: String,
+                    notify: true
                 }
             },
 
@@ -155,10 +165,76 @@
                         //currentChild.data = data;
                         var dataChartElem = Polymer.dom(self).querySelector('[plot-id$="' + id + '"]');
 
-                        dataChartElem.data = data;
+                        dataChartElem.data = self.transformFunc(data);
                     });
                 }
 
+            },
+
+            //
+            //  output data format 
+            //  {
+            //      columns: Collection <Object> {measurement-id: <Epiviz measurement>}
+            //      values : Array  [measurement-id: Val <Integer>, row: rowInfo]
+            //  }
+            // TODO: json format
+            epivizToJSON: function(data) {
+
+                if(!this.transformData) {
+                    return data;
+                }
+
+                var fromDataMeasurements = [];
+                var range = this.range;
+
+                var firstGlobalIndex = data.firstSeries().globalStartIndex();
+                var lastGlobalIndex = data.firstSeries().globalEndIndex();
+
+                data.foreach(function(measurement, series) {
+                    fromDataMeasurements.push(measurement);
+                    var firstIndex = series.globalStartIndex();
+                    var lastIndex = series.globalEndIndex();
+                    if (firstIndex > firstGlobalIndex) { firstGlobalIndex = firstIndex; }
+                    if (lastIndex < lastGlobalIndex) { lastGlobalIndex = lastIndex; }
+                });
+
+                var nItems = lastGlobalIndex - firstGlobalIndex;
+
+                var i, index;
+                var grid = {};
+                grid.measurements = fromDataMeasurements;
+                grid.columns = {};
+
+                grid.measurements.forEach(function(m) {
+                    grid.columns[m.datasourceId() + "-" + m.id()] = m;
+                });
+
+                grid.values = [];
+                var nSeries = fromDataMeasurements.length;
+                for (i = 0; i < nItems; ++i) {
+                    index = i + firstGlobalIndex;
+                    var valArray = {};
+                    
+                    var row = {};
+                    var rowData = data.getSeries(fromDataMeasurements[0]).getRowByGlobalIndex(index);
+                    row.start = rowData.start();
+                    row.end = rowData.end();
+                    row.metadata = rowData.rowMetadata();
+                    row.strand = rowData.strand();
+                    row.index = rowData.index();
+                    row.globalIndex = rowData.globalIndex();
+                    row.id = rowData.id();
+                    row.seqName = rowData.seqName();
+                    valArray.row = row;
+
+                    grid.measurements.forEach(function(m) {
+                        var cellX = data.getSeries(m).getByGlobalIndex(index);
+                        valArray[m.datasourceId() + "-" + m.id()] = cellX.value;
+                    });
+
+                    grid.values.push(valArray);
+                }
+                return grid;
             },
 
             attached: function() {
@@ -166,7 +242,14 @@
                 var self = this;
                 // console.log("something is attached");
 
-                                // var measKeys = Object.keys(this.measurements);
+                if(self.transformDataFunc) {
+                    self.transformFunc = new Function('return ' + self.transformDataFunc);
+                }
+                else {
+                    self.transformFunc = self.epivizToJSON;
+                }
+                
+                // var measKeys = Object.keys(this.measurements);
 
                 var numChildren = self.getEffectiveChildren().length;
                 for (var index = 0; index < numChildren; index++) {
@@ -225,7 +308,7 @@
                             //currentChild.data = data;
                             var dataChartElem = Polymer.dom(self).querySelector('[plot-id$="' + id + '"]');
 
-                            dataChartElem.data = data;
+                            dataChartElem.data = self.transformFunc(data);
                         });
                     }
 
