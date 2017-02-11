@@ -8,8 +8,13 @@
 	<style>
 	:host{
 		display: inline-block;
+        padding: 15px;
+        margin: 5px;
+        border: 1px solid black;
+        border-radius: 5px;
 	}
 	</style>
+    <a href="http://epiviz.github.io" target="_blank"><img src="epiviz_4_logo_medium.png" alt="Epiviz" width="100" height="21"></a>
     <content id="chartEnv" select=".charts"></content>
 </template>
 
@@ -27,12 +32,27 @@
                 //     value: {},
                 //     notify: true
                 // },
+
+                chr: {
+                    type: String,
+                    notify: true
+                },
+
+                start: {
+                    type: Number,
+                    notify: true
+                },
+
+
+                end: {
+                    type: Number,
+                    notify: true
+                },
+
                 range: {
                     type: Object,
                     notify: true,
-                    value: function() {
-                        return new epiviz.datatypes.GenomicRange("chr11", 82000000, 9000000);
-                    }
+		            computed: 'getGenomicRange(chr, start, end)'
                 },
 
                 transformData: {
@@ -45,6 +65,15 @@
                     type: String,
                     notify: true
                 }
+            },
+
+            observers: [
+                '_rangeChanged(chr.*, start.*, end.*)'
+                // '_dataChanged(data.*)'
+            ],
+
+            getGenomicRange: function(chr, start, end) {
+                    return new epiviz.datatypes.GenomicRange(chr, start, end-start);
             },
 
             // Listeners for interaction between 2 graphs
@@ -113,13 +142,29 @@
                 return 'epiviz-' + result;
             },
 
+            _rangeChanged: function() {
+
+                var self = this;
+
+                var numChildren = self.getEffectiveChildren().length;
+                for (var index = 0; index < numChildren; index++) {
+                    var currentChild = self.getEffectiveChildren()[index];
+                    if(currentChild == undefined || currentChild.plotId == undefined) {return ;}
+                    self._updateChart(currentChild.plotId);   
+                }
+            },
+
             _updateChart: function(cId) {
+
+                if(cId == undefined) {return;}
 
                 var self = this;
 
                 var currentChild = Polymer.dom(self).querySelector('[plot-id$="' + cId + '"]');
 
                 var dims = currentChild.dimS || currentChild.getAttribute("dim-s");
+
+                $('#' + cId).empty();
 
                 if (typeof(dims) == "string") {
                     dims = JSON.parse(dims);
