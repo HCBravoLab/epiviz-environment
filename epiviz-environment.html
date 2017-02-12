@@ -150,7 +150,8 @@
                 for (var index = 0; index < numChildren; index++) {
                     var currentChild = self.getEffectiveChildren()[index];
                     if(currentChild == undefined || currentChild.plotId == undefined) {return ;}
-                    self._updateChart(currentChild.plotId);   
+                    // TODO: need to delete chart content before update 
+                    // self._updateChart(currentChild.plotId);   
                 }
             },
 
