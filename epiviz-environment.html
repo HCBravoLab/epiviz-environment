@@ -1,5 +1,4 @@
 <link rel="import" href="../polymer/polymer.html">
-
 <link rel="import" href="../epiviz-imports/epiviz-common-js.html">
 
 <dom-module id="epiviz-environment">
@@ -27,11 +26,6 @@
                     notify: true,
                     reflectToAttribute: true
                 },
-                // dataTemp: {
-                //     type: Object,
-                //     value: {},
-                //     notify: true
-                // },
 
                 chr: {
                     type: String,
@@ -69,7 +63,6 @@
 
             observers: [
                 '_rangeChanged(chr.*, start.*, end.*)'
-                // '_dataChanged(data.*)'
             ],
 
             getGenomicRange: function(chr, start, end) {
@@ -84,43 +77,15 @@
             },
 
             onHover: function(e) {
-                // console.log("in onHover of chart-env");
                 this.fire('hoverAllCharts', {
                     data: e.detail.data
                 });
-
-                // var self = this;
-
-                // var numChildren = self.getEffectiveChildren().length;
-                // for (var index = 0; index < numChildren; index++) {
-                //     var currentChild = self.getEffectiveChildren()[index];
-                //     self.fire('hoverAllCharts', {
-                //          data: e.detail.data
-                //     }, {
-                //         bubbles: false,
-                //         node: currentChild
-                //     });
-                // }
             },
 
             onUnhover: function(e) {
-                // console.log("in onHover of chart-env");
                 this.fire('unHoverAllCharts', {
                     data: null
                 });
-
-                // var self = this;
-
-                // var numChildren = self.getEffectiveChildren().length;
-                // for (var index = 0; index < numChildren; index++) {
-                //     var currentChild = self.getEffectiveChildren()[index];
-                //     self.fire('unHoverAllCharts', {
-                //          data: null
-                //     }, {
-                //         bubbles: false,
-                //         node: currentChild
-                //     });
-                // }
             },
 
             onDimChanged: function(e) {
@@ -150,8 +115,6 @@
                 for (var index = 0; index < numChildren; index++) {
                     var currentChild = self.getEffectiveChildren()[index];
                     if(currentChild == undefined || currentChild.plotId == undefined) {return ;}
-                    // TODO: need to delete chart content before update 
-                    // self._updateChart(currentChild.plotId);   
                 }
             },
 
@@ -286,7 +249,6 @@
             attached: function() {
 
                 var self = this;
-                // console.log("something is attached");
 
                 if(self.transformDataFunc) {
                     self.transformFunc = new Function('return ' + self.transformDataFunc);
@@ -294,17 +256,10 @@
                 else {
                     self.transformFunc = self.epivizToJSON;
                 }
-                
-                // var measKeys = Object.keys(this.measurements);
 
                 var numChildren = self.getEffectiveChildren().length;
                 for (var index = 0; index < numChildren; index++) {
                     var currentChild = self.getEffectiveChildren()[index];
-                    // var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
-                    // var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
-
-                    // var mtdx = self.measurements[tdx] || null;
-                    // var mtdy = self.measurements[tdy] || null;
 
                     var dims = currentChild.dims || currentChild.getAttribute("dim-s");
 
@@ -359,85 +314,20 @@
                     }
 
                 }
-
-                // measKeys.forEach(function(mk) {
-                //     var currMea = self.measurement[mk];
-
-                //     var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + currMea.dataprovider + '"]');
-
-                //     if (dataManagerElem != null) {
-                //         var dataManager = dataManagerElem.dataManager;
-                //         console.log(dataManager);
-                //         var tempMSet = new epiviz.measurements.MeasurementSet();
-                //         var tempMea = new epiviz.measurements.Measurement(
-                //             currMea.id,
-                //             currMea.name,
-                //             currMea.type,
-                //             currMea.datasourceId,
-                //             currMea.datasourceGroup,
-                //             'umd',
-                //             null,
-                //             null,
-                //             null,
-                //             currMea.minValue,
-                //             currMea.maxValue,
-                //             currMea.metadata
-                //         );
-
-                //         tempMSet.add(tempMea);
-
-                //         var tM = {};
-                //         tM[mk] = tempMSet;
-                //         var range = new epiviz.datatypes.GenomicRange("chr11", 80000000, 3000000);
-                //         var webProvider = dataManager._dataProviderFactory._providers[currMea.dataprovider];
-                //         console.log(webProvider);
-
-                //         var dataRequest = currMea.type == 'range' ? epiviz.data.Request.getRows(tempMea, range) : epiviz.data.Request.getValues(tempMea, range);
-
-                //         console.log(dataRequest);
-
-                //         webProvider.getData(dataRequest, function(data) {
-                //             console.log(data);
-                //             self[mk] = data._data.values;
-                //             self._dataCreated();
-                //         });
-
-                //     }
-
-                // });
             },
 
             ready: function() {
-                // console.log("in ready function");
                 this.scopeSubtree(this, true);
                 var self = this;
 
                 self._observer =
                     Polymer.dom(self.$.chartEnv).observeNodes(function(info) {
-                        // self.$.eenv.render();
-                        // console.log(info.addedNodes);
 
                         info.addedNodes.forEach(function(node) {
                             self._updateChart(node.plotId);
                         });
-
-                        // console.log(info.removedNodes);
                 });
             }
-
-            // Pre-processing data
-            // and bind them to dataX and dataY of chart  
-            // _dataCreated: function() {
-            //     var self = this;
-            //     var numChildren = self.getEffectiveChildren().length;
-            //     for (var index = 0; index < numChildren; index++) {
-            //         var currentChild = self.getContentChildren('#chartEnv')[index];
-            //         var tdx = currentChild.dimX || currentChild.getAttribute("dim-x");
-            //         var tdy = currentChild.dimY || currentChild.getAttribute("dim-y");
-            //         currentChild.dataX = self[tdx];
-            //         currentChild.dataY = self[tdy];
-            //     }
-            // }
 
         });
     </script>
