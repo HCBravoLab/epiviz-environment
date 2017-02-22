@@ -1,7 +1,7 @@
 {
   "name": "epiviz-environment",
   "version": "1.0.0",
-  "description": "Environmenta app helper component for epiviz",
+  "description": "Environment app helper component for epiviz",
   "main": "demo/",
   "directories": {
     "test": "test"
