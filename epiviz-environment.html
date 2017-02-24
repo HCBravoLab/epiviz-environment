@@ -13,6 +13,7 @@
         border-radius: 5px;
 	}
 	</style>
+
     <a href="http://epiviz.github.io" target="_blank"><img src="epiviz_4_logo_medium.png" alt="Epiviz" width="100" height="21"></a>
     <content id="chartEnv" select=".charts"></content>
 </template>
@@ -122,13 +123,9 @@
             _updateChart: function(cId) {
 
                 if(cId == undefined) {return;}
-
                 var self = this;
-
                 var currentChild = Polymer.dom(self).querySelector('[plot-id$="' + cId + '"]');
-
                 var dims = currentChild.dimS || currentChild.getAttribute("dim-s");
-
                 $('#' + cId).empty();
 
                 if (typeof(dims) == "string") {
@@ -138,28 +135,47 @@
                 var mSet = new epiviz.measurements.MeasurementSet();
                 var tMeasurements = [];
 
-                for (var idim = 0; idim < dims.length; idim++) {
-
-                    var mtdx = self.measurements[dims[idim]];
-
-                    mSet.add(new epiviz.measurements.Measurement(
-                        mtdx.id,
-                        mtdx.name,
-                        mtdx.type,
-                        mtdx.datasourceId,
-                        mtdx.datasourceGroup,
-                        mtdx.dataprovider,
-                        mtdx.formula,
-                        mtdx.defaultChartType,
-                        mtdx.annotation,
-                        mtdx.minValue,
-                        mtdx.maxValue,
-                        mtdx.metadata
-                    ));
-
-                    tMeasurements.push(mtdx);
+                if(dims != null && dims.length > 0) {
+                    for (var idim = 0; idim < dims.length; idim++) {
+                        var mtdx = self.measurements[dims[idim]];
+                        mSet.add(new epiviz.measurements.Measurement(
+                            mtdx.id,
+                            mtdx.name,
+                            mtdx.type,
+                            mtdx.datasourceId,
+                            mtdx.datasourceGroup,
+                            mtdx.dataprovider,
+                            mtdx.formula,
+                            mtdx.defaultChartType,
+                            mtdx.annotation,
+                            mtdx.minValue,
+                            mtdx.maxValue,
+                            mtdx.metadata
+                        ));
+                        tMeasurements.push(mtdx);
+                    }
                 }
+                else if(currentChild.measurements.length > 0 ){
+                    for (var idim = 0; idim < currentChild.measurements.length; idim++) {
+                        var mtdx = currentChild.measurements[idim];
+                        mSet.add(new epiviz.measurements.Measurement(
+                            mtdx.id,
+                            mtdx.name,
+                            mtdx.type,
+                            mtdx.datasourceId,
+                            mtdx.datasourceGroup,
+                            mtdx.dataprovider,
+                            mtdx.formula,
+                            mtdx.defaultChartType,
+                            mtdx.annotation,
+                            mtdx.minValue,
+                            mtdx.maxValue,
+                            mtdx.metadata
+                        ));
 
+                        tMeasurements.push(mtdx);
+                    }
+                }
                 currentChild.measurements = tMeasurements;
                 currentChild.range = self.range;
 
@@ -272,26 +288,47 @@
                     var mSet = new epiviz.measurements.MeasurementSet();
                     var tMeasurements = [];
 
-                    for (var idim = 0; idim < dims.length; idim++) {
+                    if(dims != null && dims.length > 0) {
+                        for (var idim = 0; idim < dims.length; idim++) {
+                            var mtdx = self.measurements[dims[idim]];
+                            mSet.add(new epiviz.measurements.Measurement(
+                                mtdx.id,
+                                mtdx.name,
+                                mtdx.type,
+                                mtdx.datasourceId,
+                                mtdx.datasourceGroup,
+                                mtdx.dataprovider,
+                                mtdx.formula,
+                                mtdx.defaultChartType,
+                                mtdx.annotation,
+                                mtdx.minValue,
+                                mtdx.maxValue,
+                                mtdx.metadata
+                            ));
 
-                        var mtdx = self.measurements[dims[idim]];
+                            tMeasurements.push(mtdx);
+                        }
+                    }
+                    else if(currentChild.measurements.length > 0 ){
+                        for (var idim = 0; idim < currentChild.measurements.length; idim++) {
+                            var mtdx = currentChild.measurements[idim];
+                            mSet.add(new epiviz.measurements.Measurement(
+                                mtdx.id,
+                                mtdx.name,
+                                mtdx.type,
+                                mtdx.datasourceId,
+                                mtdx.datasourceGroup,
+                                mtdx.dataprovider,
+                                mtdx.formula,
+                                mtdx.defaultChartType,
+                                mtdx.annotation,
+                                mtdx.minValue,
+                                mtdx.maxValue,
+                                mtdx.metadata
+                            ));
 
-                        mSet.add(new epiviz.measurements.Measurement(
-                            mtdx.id,
-                            mtdx.name,
-                            mtdx.type,
-                            mtdx.datasourceId,
-                            mtdx.datasourceGroup,
-                            mtdx.dataprovider,
-                            mtdx.formula,
-                            mtdx.defaultChartType,
-                            mtdx.annotation,
-                            mtdx.minValue,
-                            mtdx.maxValue,
-                            mtdx.metadata
-                        ));
-
-                        tMeasurements.push(mtdx);
+                            tMeasurements.push(mtdx);
+                        }
                     }
 
                     currentChild.plotId = id;
