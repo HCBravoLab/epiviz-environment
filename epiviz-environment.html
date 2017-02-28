@@ -184,7 +184,7 @@
                     var chartMeasMap = {};
                     chartMeasMap[cId] = mSet;
 
-                    var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
+                    var dataManagerElem = document.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
 
                     if (dataManagerElem != null) {
                         var dataManager = dataManagerElem.dataManager;
@@ -340,7 +340,7 @@
                         var chartMeasMap = {};
                         chartMeasMap[id] = mSet;
 
-                        var dataManagerElem = Polymer.dom(self).parentNode.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
+                        var dataManagerElem = document.querySelector('epiviz-data-source[provider-id$="' + tMeasurements[0].dataprovider + '"]');
 
                         if (dataManagerElem != null) {
                             var dataManager = dataManagerElem.dataManager;
